@@ -97,6 +97,24 @@ function titleCaseLabel(value) {
 
 export function getOperationLabel(type) {
   return OPERATION_LABELS[type] || titleCaseLabel(type)
+export async function fetchAccountCreationDate(publicKey, network = 'testnet') {
+  const server = getServer(network)
+
+  try {
+    const ops = await server
+      .operations()
+      .forAccount(publicKey)
+      .order('asc')
+      .limit(1)
+      .call()
+
+    const operation = ops.records[0]
+    if (operation?.type !== 'create_account') return null
+
+    return operation.created_at || null
+  } catch {
+    return null
+  }
 }
 
 export async function fetchNetworkStats(network = 'testnet') {
