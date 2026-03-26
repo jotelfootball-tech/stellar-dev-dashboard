@@ -80,6 +80,20 @@ export async function fetchOperations(
   return ops.records
 }
 
+// ─── Offers ───────────────────────────────────────────────────────────────────
+
+export async function fetchAccountOffers(
+  publicKey: string,
+  network: NetworkName = 'testnet'
+): Promise<StellarSdk.Horizon.ServerApi.OfferRecord[]> {
+  const server = getServer(network)
+  const offers = await server
+    .offers()
+    .forAccount(publicKey)
+    .call()
+  return offers.records
+}
+
 // ─── Network stats ────────────────────────────────────────────────────────────
 
 export interface NetworkStats {
@@ -97,6 +111,22 @@ export async function fetchNetworkStats(network: NetworkName = 'testnet'): Promi
     latestLedger: ledger.records[0],
     feeStats,
   }
+}
+
+// ─── Streaming ────────────────────────────────────────────────────────────────
+
+export function streamLedgers(
+  callback: (ledger: StellarSdk.Horizon.ServerApi.LedgerRecord) => void,
+  network: NetworkName = 'testnet'
+): () => void {
+  const server = getServer(network)
+  return server
+    .ledgers()
+    .cursor('now')
+    .stream({
+      onmessage: callback,
+      onerror: (error) => console.error('Ledger stream error:', error),
+    })
 }
 
 // ─── Faucet ───────────────────────────────────────────────────────────────────
